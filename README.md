@@ -1,8 +1,6 @@
-## Noita Entangled Worlds - Play Noita not alone
+## Entangled Goyim - Play Noita not alone
 
-[<img src="https://img.shields.io/liberapay/patrons/bgkillas.svg?logo=liberapay">](https://liberapay.com/bgkillas/) for one of the 2 devs, the other dev does not have the means for donations due to his residence
-
-Noita Entangled Worlds is an online true coop multiplayer mod.
+Entangled Goyim is an online true co-op multiplayer mod for Noita. It's a new project based on [Noita Entangled Worlds](https://github.com/IntQuant/noita_entangled_worlds) v1.6.6 and is versioned separately, starting at v1.0.0. It isn't compatible with the original mod: both players need Entangled Goyim to play together.
 
 What is synced as of now:
  - Players, their positions, health, perks and inventories
@@ -14,9 +12,12 @@ What is synced as of now:
  - Fungal shifts
  - Polymorphing
 
-There is a video by nichelessone that showcases a recent version: https://www.youtube.com/watch?v=mMP-93-RTs0
+### Changes from Noita Entangled Worlds
 
-Discord server: [https://discord.gg/uAK7utvVWN](https://discord.gg/uAK7utvVWN)
+ - **Multiplayer Continue:** if you join a host who is in a different world (seed), you get a prompt to move into their world. You keep your wands, items, spells, perks and gold.
+ - **Less lag with more players:** remote players' inventories are no longer scanned every frame, network messages to several players are compressed once, and player positions no longer clog the connection.
+ - **Fewer crashes in long sessions:** fixed memory that grew for the whole session, and several crashes when a player leaves.
+ - The proxy updates itself and installs the mod from this repo's releases.
 
 ## Installation (provided by @stefnotch)
 
@@ -69,6 +70,8 @@ After that, just start a new Noita game on everyone's PCs, and you should be in 
  - "New Game" - you're joining a multiplayer run you haven't joined before.
  - "Continue" - you're reconnecting to a multiplayer run that you've joined before and hasn't ended yet.
 
+If you end up in a different world than the host (for example, you pressed "Continue" on an old save), a **Multiplayer Continue** prompt appears. Press it, then press "New Game" when Noita shows the game-over screen. You'll start in the host's world with all your wands, items, spells, perks and gold. The game-over screen here doesn't mean you lost anything.
+
 Using the same save file for multiplayer and singleplayer isn't something that should be done.
 
 ## Global perks
@@ -109,6 +112,8 @@ There is a "Allow using steam networking even if you don't have the game on stea
 ## Thanks
 
 Special thanks to:
+ - The developers of [Noita Entangled Worlds](https://github.com/IntQuant/noita_entangled_worlds), which this project is based on. You can support one of them on [Liberapay](https://liberapay.com/bgkillas/), and the original project has a [Discord server](https://discord.gg/uAK7utvVWN).
+ - @stefnotch, @Ownezx, @Roenalt and @merll002 for the installation guides.
  - Contributors.
  - @EvaisaDev for allowing to use code from Noita Arena mod.
  - @dextercd for NoitaPatcher.
