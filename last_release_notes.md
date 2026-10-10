@@ -7,6 +7,8 @@
 - The mod download is now `goyim.ew.zip`.
 
 ### Updating from an earlier version
+If you're on v1.0.0, download the new proxy below by hand once; its updater can't find the renamed downloads. From v1.0.1 onward, the proxy's update button works.
+
 The proxy installs the mod into the new folder automatically. Your old `mods/quant.ew` folder is left alone, because the original mod may still be using it. If you don't play the original mod, you can delete that folder.
 
 ### Installation
