@@ -25,15 +25,15 @@ jobs:
           cargo +nightly build --release --target=i686-pc-windows-gnu
         working-directory: ./ewext
       - name: Copy ewext
-        run: cp ewext/target/i686-pc-windows-gnu/release/ewext.dll quant.ew/ewext.dll
+        run: cp ewext/target/i686-pc-windows-gnu/release/ewext.dll goyim.ew/ewext.dll
 
       - name: Create archive
         run: python scripts/ci_make_archives.py mod
 
       - uses: actions/upload-artifact@v4
         with:
-          name: quant.ew.zip
-          path: target/quant.ew.zip
+          name: goyim.ew.zip
+          path: target/goyim.ew.zip
 
   build-proxy-linux:
     name: Build proxy for linux

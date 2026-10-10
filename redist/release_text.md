@@ -1,9 +1,9 @@
 # Installation
 Download Noita Proxy (goyim_proxy-win.zip) and unpack it somewhere.
 
-Download the mod in quant.ew.zip
+Download the mod in goyim.ew.zip
 
-Go to Noita mod folder (can be done from in-game Mods menu item) and unpack the archive here. There should now be quant.ew folder inside the mods folder. Enable the mod in noita.
+Go to Noita mod folder (can be done from in-game Mods menu item) and unpack the archive here. There should now be goyim.ew folder inside the mods folder. Enable the mod in noita.
 
 # Running
 

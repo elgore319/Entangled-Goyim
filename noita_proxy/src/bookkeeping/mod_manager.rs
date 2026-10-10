@@ -166,7 +166,7 @@ impl Modmanager {
                             mod_downloader_for(tag, download_path)
                         });
                         // Make sure we are deleting the right thing
-                        assert!(mod_path.ends_with("quant.ew"));
+                        assert!(mod_path.ends_with("goyim.ew"));
                         fs::remove_dir_all(mod_path).ok();
                         info!("Current mod deleted");
                         info!("Switching to DownloadMod state");
@@ -371,7 +371,7 @@ fn mod_downloader_for(
         })
         .and_then(|asset_list| {
             asset_list
-                .find_by_name("quant.ew.zip")
+                .find_by_name("goyim.ew.zip")
                 .cloned()
                 .wrap_err("while finding asset by name")
         })
@@ -503,7 +503,17 @@ fn enable_mod(saves_path: &Path) -> Result<(), Box<dyn Error>> {
 
     let mod_config_path = saves_path.join("save00/mod_config.xml");
     let mut data: Mods = quick_xml::de::from_reader(BufReader::new(File::open(&mod_config_path)?))?;
-    data.entry("quant.ew").enabled = 1;
+    data.entry("goyim.ew").enabled = 1;
+    // The original Entangled Worlds mod (quant.ew) can stay installed next to
+    // this one, but both running at once would break multiplayer, so it is
+    // turned off here. Its own proxy turns it back on when used.
+    if let Some(original) = data
+        .mod_entries
+        .iter_mut()
+        .find(|ent| ent.name == "quant.ew")
+    {
+        original.enabled = 0;
+    }
     let xml = quick_xml::se::to_string(&data)?;
     fs::write(&mod_config_path, xml)?;
     Ok(())

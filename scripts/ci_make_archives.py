@@ -33,9 +33,9 @@ elif mode == "macos":
 elif mode == "mod":
     print("Writing mod release...")
 
-    shutil.make_archive("target/quant.ew", "zip", "quant.ew")
+    shutil.make_archive("target/goyim.ew", "zip", "goyim.ew")
 
-    with ZipFile("target/quant.ew.zip", "a") as release:
+    with ZipFile("target/goyim.ew.zip", "a") as release:
         release.writestr("files/version.lua", f'return "{version}"')
 else:
     exit(-1)

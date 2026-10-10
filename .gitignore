@@ -2,10 +2,10 @@ target
 mat_data.txt
 save_state
 *png~
-/quant.ew/files/system/player/tmp/
-/quant.ew/ewext*.dll
+/goyim.ew/files/system/player/tmp/
+/goyim.ew/ewext*.dll
 
 # Nix
 /result
 /result-man
-quant.ew/ew_seed_carryover.bin
+goyim.ew/ew_seed_carryover.bin

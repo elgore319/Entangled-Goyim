@@ -254,8 +254,8 @@ mod test {
         let assets = release.get_release_assets(&client).unwrap();
         //println!("{:?}", release);
         //println!("{:?}", assets);
-        let mod_asset = assets.find_by_name("quant.ew.zip").unwrap();
+        let mod_asset = assets.find_by_name("goyim.ew.zip").unwrap();
         //println!("{:?}", mod_asset);
-        assert_eq!(mod_asset.name, "quant.ew.zip")
+        assert_eq!(mod_asset.name, "goyim.ew.zip")
     }
 }

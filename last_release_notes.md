@@ -1,12 +1,14 @@
-## Entangled Goyim v1.0.2
+## Entangled Goyim v1.0.3
 
 ### Changes
-- v1.0.1 was tagged before its version bump and still reports itself as 1.0.0; this release replaces it.
-- Proxy downloads are now named `goyim_proxy-*.zip`.
-- The mod shows as **Slugma's Entangled Goyim** in Noita's mod list.
+- The mod now installs into its own folder, `mods/goyim.ew`, so it can sit next to the original Entangled Worlds mod (`mods/quant.ew`) instead of overwriting it.
+- The proxy keeps its settings and saved runs in its own folder too. The first time it starts, it copies your settings (nickname, colors, Noita location) from the old folder.
+- When the proxy enables Slugma's Entangled Goyim, it turns off Quant's Entangled Worlds. If both end up enabled, Slugma's Entangled Goyim stays inactive and tells you to disable one.
+- The mod download is now `goyim.ew.zip`.
+
+### Updating from an earlier version
+The proxy installs the mod into the new folder automatically. Your old `mods/quant.ew` folder is left alone, because the original mod may still be using it. If you don't play the original mod, you can delete that folder.
 
 ### Installation
 
-Download `goyim_proxy-win.zip`, `goyim_proxy-linux.zip`, `goyim_proxy-macos-arm64.zip` (Apple Silicon) or `goyim_proxy-macos-intel.zip` (Intel) below, unpack it and launch the proxy. The proxy can download and install the mod automatically. If you're already on v1.0.0 or v1.0.1, the proxy's update button will update you.
-
-The `noita_proxy-*.zip` files are copies kept so v1.0.0 proxies can update themselves; new players should use the `goyim_proxy-*.zip` files.
+Download `goyim_proxy-win.zip`, `goyim_proxy-linux.zip`, `goyim_proxy-macos-arm64.zip` (Apple Silicon) or `goyim_proxy-macos-intel.zip` (Intel) below, unpack it and launch the proxy. The proxy can download and install the mod automatically.

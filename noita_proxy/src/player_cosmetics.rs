@@ -476,7 +476,7 @@ pub fn create_player_png(
     {
         let f = tmp_path.join(s);
         replace_colors(f, tmp_path.join(format!("tmp/{id}_ragdoll_{s}")), &rgb);
-        files = format!("{files}mods/quant.ew/files/system/player/tmp/{id}_ragdoll_{s}\n");
+        files = format!("{files}mods/goyim.ew/files/system/player/tmp/{id}_ragdoll_{s}\n");
     }
     ragdoll.write_all(files.as_bytes()).unwrap();
     let img = create_arm(Rgba::from(to_u8(rgb.player_forearm)));
@@ -499,7 +499,7 @@ pub fn create_player_png(
         tmp_path.join(format!("tmp/{id}_dc.xml")).into_os_string(),
         vec![1],
         vec![format!(
-            "filename=\"mods/quant.ew/files/system/player/tmp/{}_dc.png\"",
+            "filename=\"mods/goyim.ew/files/system/player/tmp/{}_dc.png\"",
             id
         )],
     );
@@ -508,7 +508,7 @@ pub fn create_player_png(
         tmp_path.join(format!("tmp/{id}.xml")).into_os_string(),
         vec![1],
         vec![format!(
-            "filename=\"mods/quant.ew/files/system/player/tmp/{}.png\"",
+            "filename=\"mods/goyim.ew/files/system/player/tmp/{}.png\"",
             id
         )],
     );
@@ -517,7 +517,7 @@ pub fn create_player_png(
         tmp_path.join("tmp/".to_owned() + &id.clone() + "_lukki.xml"),
         &[(
             "MARKER_LUKKI_PNG",
-            format!("mods/quant.ew/files/system/player/tmp/{id}_lukki.png"),
+            format!("mods/goyim.ew/files/system/player/tmp/{id}_lukki.png"),
         )],
     );
     edit_by_replacing(
@@ -553,23 +553,23 @@ pub fn create_player_png(
             ),
             (
                 "MARKER_MAIN_SPRITE",
-                format!("mods/quant.ew/files/system/player/tmp/{id}.xml"),
+                format!("mods/goyim.ew/files/system/player/tmp/{id}.xml"),
             ),
             (
                 "MARKER_LUKKI_SPRITE",
-                format!("mods/quant.ew/files/system/player/tmp/{id}_lukki.xml"),
+                format!("mods/goyim.ew/files/system/player/tmp/{id}_lukki.xml"),
             ),
             (
                 "MARKER_ARM_SPRITE",
-                format!("mods/quant.ew/files/system/player/tmp/{id}_arm.xml"),
+                format!("mods/goyim.ew/files/system/player/tmp/{id}_arm.xml"),
             ),
             (
                 "MARKER_CAPE",
-                format!("mods/quant.ew/files/system/player/tmp/{id}_cape.xml"),
+                format!("mods/goyim.ew/files/system/player/tmp/{id}_cape.xml"),
             ),
             (
                 "RAGDOLL_MARKER",
-                format!("mods/quant.ew/files/system/player/tmp/{id}_ragdoll.txt"),
+                format!("mods/goyim.ew/files/system/player/tmp/{id}_ragdoll.txt"),
             ),
         ],
     );
@@ -578,16 +578,16 @@ pub fn create_player_png(
         tmp_path.join(format!("tmp/{id}_arm.xml")).into_os_string(),
         vec![1],
         vec![format!(
-            "filename=\"mods/quant.ew/files/system/player/tmp/{}_arm.png\"",
+            "filename=\"mods/goyim.ew/files/system/player/tmp/{}_arm.png\"",
             id
         )],
     );
-    // mods.quant.ew.files.system.player.tmp.0000000000000001.png
+    // mods.goyim.ew.files.system.player.tmp.0000000000000001.png
     fs::copy(
         tmp_path.join("player_uv.png"),
         mod_path
             .join("data/generated/sprite_uv_maps/")
-            .join(format!("mods.quant.ew.files.system.player.tmp.{id}.png")),
+            .join(format!("mods.goyim.ew.files.system.player.tmp.{id}.png")),
     )
     .unwrap();
 }

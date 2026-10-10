@@ -27,6 +27,8 @@ Unpack it, and launch the proxy. Proxy is able to download and install the mod a
 
 ![image](https://github.com/user-attachments/assets/817cd204-1815-4834-803b-58761b21dc51)
 
+The mod installs into its own folder (`mods/goyim.ew`), so it can stay installed alongside the original Entangled Worlds mod. Only one of the two can be enabled at a time.
+
 Then, start Noita, and enable the mod.
 1. In the "Mods" menu, enable unsafe mods.
 2. Then, enable the "Slugma's Entangled Goyim" mod.

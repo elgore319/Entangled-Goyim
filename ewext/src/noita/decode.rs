@@ -1,6 +1,6 @@
 //! Native world decode.
 //!
-//! The inbound half of world sync used to run in Lua (`quant.ew/files/system/
+//! The inbound half of world sync used to run in Lua (`goyim.ew/files/system/
 //! world_sync/world.lua:world.decode`): a per-pixel loop making two or more FFI
 //! calls per pixel, over a 128x128 chunk, with no per-frame budget. That is
 //! ~16k iterations and ~50-100k FFI transitions for a single chunk, executed
@@ -13,7 +13,7 @@
 //! the proven path and avoids taking on a second copy of Noita's memory layout.
 //!
 //! The Lua implementation remains in the tree and is still the fallback; see
-//! `quant.ew.rust_world_decode`.
+//! `goyim.ew.rust_world_decode`.
 
 // The DLL only ever loads into 32-bit Noita. Host builds exist so `cargo check`
 // and clippy can run on Linux, and there `decode_area` is a stub, which leaves
