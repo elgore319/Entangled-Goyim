@@ -5,10 +5,13 @@
 -- that ends up on another seed (usually from pressing "Continue" on an old
 -- save, or because the host continued a save whose seed differs from the
 -- proxy's) cannot be fixed in place. Instead the client:
+--   0. the player is shown a "Multiplayer Continue" prompt; nothing happens
+--      until they press it,
 --   1. writes its wands, items, spells, perks, gold and max HP to a carryover
 --      file together with the host's seed,
 --   2. ends its own run (only locally; the host's run is unaffected),
---   3. on the next "New Game", the seed from the carryover file is applied in
+--   3. on the next "New Game" (an on-screen note explains this during the
+--      game-over screen), the seed from the carryover file is applied in
 --      OnModPreInit, before world generation, and
 --   4. once the new player has spawned on the host's seed, the carryover is
 --      restored and the file is deleted.
@@ -26,6 +29,10 @@ local CARRYOVER_MAX_AGE_SECONDS = 60 * 60
 local RESTORE_DELAY_FRAMES = 20
 
 local migrating = false
+-- The host's seed, while it differs from ours and the player hasn't switched.
+local pending_host_seed = nil
+local prompt_minimized = false
+local gui = GuiCreate()
 local pending_restore = nil
 local restore_frame = nil
 
@@ -118,30 +125,108 @@ local function collect_carryover(host_seed)
     return carry
 end
 
--- Called on a client when the host reports a different world seed.
-function module.move_to_host_seed(host_seed)
-    if migrating or ctx.is_host or ctx.run_ended or ctx.my_player == nil then
-        return
+-- Saves the carryover and ends this client's run. Returns false and a reason
+-- for the player if that can't be done right now.
+local function move_to_host_seed(host_seed)
+    if migrating then
+        return true
+    end
+    if ctx.is_host or ctx.run_ended or ctx.my_player == nil then
+        return false, "Not available right now."
     end
     if EntityHasTag(ctx.my_player.entity, "polymorphed") or GameHasFlagRun("ew_flag_notplayer_active") then
-        -- Inventory can't be read reliably while polymorphed or dead; try again
-        -- on the host's next seed report.
-        return
+        -- Inventory can't be read reliably while polymorphed or dead.
+        return false, "Get back into your own body first, then try again."
     end
-    migrating = true
 
     local ok, carry = pcall(collect_carryover, host_seed)
     if not ok or not write_carryover(carry) then
-        GamePrint("You are on a different seed than the host (" .. tostring(host_seed) .. ").")
-        GamePrint("Couldn't save your items to switch automatically; start a New Game to switch.")
-        return
+        print("Seed sync: could not save carryover: " .. tostring(carry))
+        return false, "Couldn't save your items, so nothing was changed."
     end
 
-    GamePrint("You were on a different seed than the host.")
-    GamePrint("Moving you to the host's seed. Start a New Game; your items will be kept.")
+    migrating = true
+    GamePrint("Your items are saved. Press New Game to continue in the host's world.")
     print("Seed sync: saved carryover, ending local run to switch to seed " .. tostring(host_seed))
     -- Same path as a proxy-requested end of run: only this client's run ends.
     net.net_handling.proxy.end_run()
+    return true
+end
+
+-- Called on a client when the host reports a different world seed. Nothing
+-- happens until the player presses "Multiplayer Continue".
+function module.on_host_seed_differs(host_seed)
+    if migrating or ctx.is_host then
+        return
+    end
+    if pending_host_seed == nil then
+        GamePrint("You're in a different world than the host. Use Multiplayer Continue to join theirs.")
+    end
+    pending_host_seed = host_seed
+end
+
+-- The host now reports our seed (e.g. both started a new run), so the
+-- prompt no longer applies.
+function module.on_host_seed_matches()
+    pending_host_seed = nil
+    prompt_minimized = false
+end
+
+local function draw_centered_text(y, text)
+    local w = GuiGetScreenDimensions(gui)
+    local tw = GuiGetTextDimensions(gui, text)
+    GuiText(gui, (w - tw) / 2, y, text)
+end
+
+local function draw_centered_button(id, y, text)
+    local w = GuiGetScreenDimensions(gui)
+    local tw = GuiGetTextDimensions(gui, text)
+    return GuiButton(gui, id, (w - tw) / 2, y, text)
+end
+
+-- The prompt shown while this client is in a different world than the host.
+local function draw_prompt()
+    GuiStartFrame(gui)
+    GuiZSet(gui, -100)
+    local _, h = GuiGetScreenDimensions(gui)
+    if prompt_minimized then
+        local text = "[Multiplayer Continue]"
+        local tw, th = GuiGetTextDimensions(gui, text)
+        local w = GuiGetScreenDimensions(gui)
+        if GuiButton(gui, 2, w - tw - 4, h - th - 14, text) then
+            prompt_minimized = false
+        end
+        return
+    end
+    local y = h * 0.3
+    draw_centered_text(y, "You're in a different world than the host.")
+    draw_centered_text(y + 12, "Multiplayer Continue moves you into the host's world.")
+    draw_centered_text(y + 24, "You keep your wands, items, spells, perks and gold.")
+    if draw_centered_button(1, y + 44, "[ Multiplayer Continue ]") then
+        local ok, reason = move_to_host_seed(pending_host_seed)
+        if ok then
+            pending_host_seed = nil
+        elseif reason ~= nil then
+            GamePrint(reason)
+        end
+    end
+    if draw_centered_button(3, y + 60, "[ Not now ]") then
+        prompt_minimized = true
+    end
+end
+
+-- Shown after the run has ended for the switch, while Noita shows its own
+-- game-over screen.
+function module.draw_after_run_end()
+    if not migrating then
+        return
+    end
+    GuiStartFrame(gui)
+    GuiZSet(gui, -100)
+    local _, h = GuiGetScreenDimensions(gui)
+    local y = h * 0.15
+    draw_centered_text(y, "Your items are saved. This isn't a real game over.")
+    draw_centered_text(y + 12, "Press New Game to continue in the host's world with everything you had.")
 end
 
 local function restore_carryover(carry)
@@ -190,6 +275,9 @@ function module.on_local_player_spawn()
 end
 
 function module.on_world_update()
+    if pending_host_seed ~= nil and not migrating then
+        draw_prompt()
+    end
     if pending_restore == nil or GameGetFrameNum() < restore_frame then
         return
     end

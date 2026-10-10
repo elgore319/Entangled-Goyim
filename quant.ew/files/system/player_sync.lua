@@ -140,10 +140,13 @@ function rpc.check_gamemode(gamemode, seed, world_num, has_won)
         GamePrint("their game mode: " .. gamemode)
         GamePrint("your game mode: " .. gm)
     end
+    if my_seed == seed and ctx.rpc_peer_id == ctx.host_id then
+        seed_sync.on_host_seed_matches()
+    end
     if my_seed ~= seed then
         if ctx.rpc_peer_id == ctx.host_id and not ctx.is_host then
-            -- The host's seed wins: move this client onto it, keeping items.
-            seed_sync.move_to_host_seed(seed)
+            -- The host's seed wins: offer to move this client onto it, keeping items.
+            seed_sync.on_host_seed_differs(seed)
         elseif not seed_mismatch_reported[ctx.rpc_peer_id] then
             -- Only say it once per player instead of every 5 seconds.
             seed_mismatch_reported[ctx.rpc_peer_id] = true

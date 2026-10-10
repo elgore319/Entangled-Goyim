@@ -665,6 +665,9 @@ function OnWorldPostUpdate() -- This is called every time the game has finished 
     if net.connect_failed then
         return
     end
+    if ctx.run_ended then
+        util.tpcall(dofile_once("mods/quant.ew/files/system/seed_sync/seed_sync.lua").draw_after_run_end)
+    end
     util.tpcall(on_world_post_update_inner)
     ctx.events = {}
     net.proxy_send("flush", "")
