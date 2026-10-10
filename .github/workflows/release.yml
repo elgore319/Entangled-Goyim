@@ -134,11 +134,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           merge-multiple: true
-      # Proxies from v1.0.0 look for noita_proxy-*.zip when they self-update,
-      # so also attach copies under the old names. Remove once nobody is on
-      # v1.0.0 any more.
-      - name: Add copies under the old proxy zip names
-        run: for f in goyim_proxy-*.zip; do cp "$f" "noita_proxy-${f#goyim_proxy-}"; done
       - uses: ncipollo/release-action@v1
         with:
           #draft: true
