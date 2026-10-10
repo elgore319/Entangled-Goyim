@@ -36,6 +36,7 @@ inventory_helper = dofile_once("mods/goyim.ew/files/core/inventory_helper.lua")
 player_fns = dofile_once("mods/goyim.ew/files/core/player_fns.lua")
 
 local cos = dofile_once("mods/goyim.ew/files/system/player/player_cosmetics.lua")
+local crash_recovery = dofile_once("mods/goyim.ew/files/system/crash_recovery/crash_recovery.lua")
 
 local perk_fns = dofile_once("mods/goyim.ew/files/core/perk_fns.lua")
 
@@ -76,6 +77,7 @@ local function load_modules()
     ctx.load_system("uniq_flags")
     ctx.load_system("ewext_init")
     ctx.load_system("seed_sync")
+    ctx.load_system("crash_recovery")
 
     ctx.dofile_and_add_hooks("mods/goyim.ew/files/system/player_sync.lua")
 
@@ -557,6 +559,7 @@ local function on_world_pre_update_inner()
         local inventory_state, spells = player_fns.serialize_items(ctx.my_player)
         if inventory_state ~= nil then
             net.send_player_inventory(inventory_state, spells)
+            crash_recovery.on_inventory_sent(inventory_state, spells)
         end
     end
 

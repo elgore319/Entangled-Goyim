@@ -9,3 +9,5 @@ save_state
 /result
 /result-man
 goyim.ew/ew_seed_carryover.bin
+goyim.ew/ew_crash_backup.bin
+goyim.ew/ew_crash_backup.bin.tmp

@@ -5,6 +5,7 @@
 - The proxy keeps its settings and saved runs in its own folder too. The first time it starts, it copies your settings (nickname, colors, Noita location) from the old folder.
 - When the proxy enables Slugma's Entangled Goyim, it turns off Quant's Entangled Worlds. If both end up enabled, Slugma's Entangled Goyim stays inactive and tells you to disable one.
 - The mod download is now `goyim.ew.zip`.
+- **Crash recovery:** the mod keeps its own backup of your wands, items, spells, perks, gold and HP. If a crash leaves you with a fresh starting character when you continue, a prompt offers to restore them. The backup is cleared when you die, so it can't bring back items after a death.
 
 ### Updating from an earlier version
 If you're on v1.0.0, download the new proxy below by hand once; its updater can't find the renamed downloads. From v1.0.1 onward, the proxy's update button works.

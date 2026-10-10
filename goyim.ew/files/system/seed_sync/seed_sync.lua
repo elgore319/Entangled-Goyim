@@ -100,28 +100,35 @@ function module.apply_pending_seed()
     end
 end
 
-local function collect_carryover(host_seed)
+-- What a player keeps when moved to a new world or restored after a crash:
+-- wands, items, spells, perks, gold and (outside shared health) HP.
+function module.collect_player_state()
     local player = ctx.my_player
     local items, spells = player_fns.serialize_items(player)
-    local carry = {
-        seed = host_seed,
-        host_id = ctx.host_id,
-        saved_at = os.time(),
+    local state = {
         items = items,
         spells = spells,
         perks = perk_fns.get_my_perks(),
     }
     local wallet = EntityGetFirstComponentIncludingDisabled(player.entity, "WalletComponent")
     if wallet ~= nil then
-        carry.money = ComponentGetValue2(wallet, "money")
+        state.money = ComponentGetValue2(wallet, "money")
     end
     if ctx.proxy_opt.game_mode ~= "shared_health" then
         local damage = EntityGetFirstComponentIncludingDisabled(player.entity, "DamageModelComponent")
         if damage ~= nil then
-            carry.hp = ComponentGetValue2(damage, "hp")
-            carry.max_hp = ComponentGetValue2(damage, "max_hp")
+            state.hp = ComponentGetValue2(damage, "hp")
+            state.max_hp = ComponentGetValue2(damage, "max_hp")
         end
     end
+    return state
+end
+
+local function collect_carryover(host_seed)
+    local carry = module.collect_player_state()
+    carry.seed = host_seed
+    carry.host_id = ctx.host_id
+    carry.saved_at = os.time()
     return carry
 end
 
@@ -229,7 +236,7 @@ function module.draw_after_run_end()
     draw_centered_text(y + 12, "Press New Game to continue in the host's world with everything you had.")
 end
 
-local function restore_carryover(carry)
+function module.restore_player_state(carry)
     local player = ctx.my_player
     if carry.items ~= nil or carry.spells ~= nil then
         inventory_helper.set_item_data({ carry.items or {}, carry.spells or {} }, player, true, true)
@@ -285,7 +292,7 @@ function module.on_world_update()
     pending_restore = nil
     -- Delete first so a failed restore can never loop.
     delete_carryover()
-    local ok, err = pcall(restore_carryover, carry)
+    local ok, err = pcall(module.restore_player_state, carry)
     if ok then
         GamePrint("Now on the host's seed. Your items were restored.")
     else
