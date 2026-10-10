@@ -1,5 +1,9 @@
 local rpc = net.new_rpc_namespace()
 
+local seed_sync = dofile_once("mods/quant.ew/files/system/seed_sync/seed_sync.lua")
+
+local seed_mismatch_reported = {}
+
 local module = {}
 
 local last_money
@@ -137,9 +141,16 @@ function rpc.check_gamemode(gamemode, seed, world_num, has_won)
         GamePrint("your game mode: " .. gm)
     end
     if my_seed ~= seed then
-        GamePrint("Player: " .. ctx.rpc_player_data.name .. ", is on a different seed then you")
-        GamePrint("their seed: " .. seed)
-        GamePrint("your seed: " .. my_seed)
+        if ctx.rpc_peer_id == ctx.host_id and not ctx.is_host then
+            -- The host's seed wins: move this client onto it, keeping items.
+            seed_sync.move_to_host_seed(seed)
+        elseif not seed_mismatch_reported[ctx.rpc_peer_id] then
+            -- Only say it once per player instead of every 5 seconds.
+            seed_mismatch_reported[ctx.rpc_peer_id] = true
+            GamePrint("Player: " .. ctx.rpc_player_data.name .. ", is on a different seed then you")
+            GamePrint("their seed: " .. seed)
+            GamePrint("your seed: " .. my_seed)
+        end
     end
     if world_num ~= ctx.proxy_opt.world_num then
         GamePrint("Player: " .. ctx.rpc_player_data.name .. ", is on a different world number then you")

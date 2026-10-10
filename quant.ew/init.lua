@@ -62,6 +62,7 @@ end
 local function load_modules()
     ctx.load_system("uniq_flags")
     ctx.load_system("ewext_init")
+    ctx.load_system("seed_sync")
 
     ctx.dofile_and_add_hooks("mods/quant.ew/files/system/player_sync.lua")
 
@@ -709,6 +710,8 @@ function OnModPreInit()
     net.init()
 
     if not net.connect_failed then
+        -- Must run before world generation, right after the proxy sent the seed.
+        util.tpcall(dofile_once("mods/quant.ew/files/system/seed_sync/seed_sync.lua").apply_pending_seed)
         util.tpcall(load_modules)
         print("Entangled worlds init complete")
     end
