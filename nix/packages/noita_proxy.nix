@@ -129,8 +129,8 @@ rustPlatform.buildRustPackage (
 
     meta = {
       inherit (manifest.package) description;
-      homepage = "https://github.com/IntQuant/noita_entangled_worlds";
-      changelog = "https://github.com/IntQuant/noita_entangled_worlds/releases/tag/v${version}";
+      homepage = "https://github.com/elgore319/Entangled-Goyim";
+      changelog = "https://github.com/elgore319/Entangled-Goyim/releases/tag/v${version}";
       license = with lib.licenses; [
         mit
         asl20
