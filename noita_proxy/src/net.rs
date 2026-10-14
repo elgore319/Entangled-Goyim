@@ -840,6 +840,12 @@ impl NetManager {
                 }
             }
             NetMsg::Mods { mods } => *self.active_mods.lock().unwrap() = mods,
+            NetMsg::SetSeed(seed) => {
+                // Only takes effect for this client's next new run; a run that
+                // is already going gets the Multiplayer Continue prompt instead.
+                info!("Host world seed is {}", seed);
+                self.settings.lock().unwrap().seed = seed;
+            }
             NetMsg::Welcome => {}
             NetMsg::PeerDisconnected { id } => {
                 info!("player kicked: {}", id);
@@ -1330,6 +1336,13 @@ impl NetManager {
         let mut msg = msg.split_ascii_whitespace();
         let key = msg.next();
         match key {
+            Some("host_seed") => {
+                if self.is_host()
+                    && let Some(seed) = msg.next().and_then(|s| s.parse::<u64>().ok())
+                {
+                    self.adopt_host_seed(seed);
+                }
+            }
             Some("game_over") => {
                 if self.is_host() {
                     info!("Game over, resending game settings");
@@ -1542,6 +1555,25 @@ impl NetManager {
             key => {
                 error!("Unknown bin msg from mod: {:?}", key)
             }
+        }
+    }
+
+    /// Makes the host's actual world seed the lobby seed and saves it right
+    /// away. When the host continues a saved run, the world keeps the seed it
+    /// was made with, whatever the proxy picked, so new runs on clients must use
+    /// that one. Saving here instead of only on shutdown means a crash or a
+    /// force-closed proxy can't lose the seed of a run that is being played.
+    fn adopt_host_seed(&self, seed: u64) {
+        let changed = {
+            let mut settings = self.settings.lock().unwrap();
+            let changed = settings.seed != seed;
+            settings.seed = seed;
+            changed
+        };
+        self.init_settings.save_state.save(&RunInfo { seed });
+        if changed {
+            info!("Lobby seed set to the host's world seed: {}", seed);
+            self.broadcast(&NetMsg::SetSeed(seed), Reliability::Reliable);
         }
     }
 
