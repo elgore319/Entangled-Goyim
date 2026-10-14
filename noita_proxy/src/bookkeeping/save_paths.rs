@@ -75,9 +75,11 @@ impl SavePaths {
         if matches!(settings_prefer, ProjectDirs) {
             let _ = fs::create_dir_all(
                 project_dirs
+                    .as_ref()
                     .expect("project_dirs is already checked to be some")
                     .config_dir(),
             );
+            import_legacy_settings(&settings_path);
         }
         if let Some(save_state_path_parent) = &save_state_path.parent() {
             let _ = fs::create_dir_all(save_state_path_parent);
@@ -105,6 +107,30 @@ impl SavePaths {
         match settings.save(&self.settings_path) {
             Ok(()) => (),
             Err(e) => error!("Failed to save settings: {e}"),
+        }
+    }
+}
+
+/// Settings used to live in the same folder as the original Entangled Worlds
+/// proxy. On the first run with the new folder, copy them over so players
+/// keep their nickname, colors and Noita path. Run saves are not copied, as
+/// they belong to whichever proxy made them.
+fn import_legacy_settings(settings_path: &std::path::Path) {
+    if settings_path.exists() {
+        return;
+    }
+    let Some(legacy) = paths::legacy_project_dirs() else {
+        return;
+    };
+    let legacy_settings = legacy.config_dir().join(paths::DEFAULT_PROXY_SETTINGS_NAME);
+    if legacy_settings.exists() {
+        match fs::copy(&legacy_settings, settings_path) {
+            Ok(_) => info!(
+                "Copied settings from {} to {}",
+                legacy_settings.display(),
+                settings_path.display()
+            ),
+            Err(err) => warn!("Could not copy old settings: {err}"),
         }
     }
 }

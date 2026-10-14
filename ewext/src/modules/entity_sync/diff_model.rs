@@ -770,13 +770,13 @@ impl LocalDiffModelTracker {
         handle.remove_tag(const { CachedTag::from_tag(DES_TAG) })?;
         with_entity_scripts(handle, |luac| {
             luac.set_script_throw_item(
-                "mods/quant.ew/files/system/entity_sync_helper/item_notify.lua".into(),
+                "mods/goyim.ew/files/system/entity_sync_helper/item_notify.lua".into(),
             )
         })?;
         for entity in entity.children(None) {
             with_entity_scripts_no_mgr(entity, |luac| {
                 luac.set_script_throw_item(
-                    "mods/quant.ew/files/system/entity_sync_helper/item_notify.lua".into(),
+                    "mods/goyim.ew/files/system/entity_sync_helper/item_notify.lua".into(),
                 )
             })?;
         }
@@ -991,7 +991,7 @@ impl LocalDiffModel {
         };
         with_entity_scripts(&mut handle, |scripts| {
             scripts.set_script_death(
-                "mods/quant.ew/files/system/entity_sync_helper/death_notify.lua".into(),
+                "mods/goyim.ew/files/system/entity_sync_helper/death_notify.lua".into(),
             )
         })?;
         let var = handle.add_component_with_var_name(const { VarName::from_str("ew_gid_lid") })?;
@@ -1811,13 +1811,13 @@ impl RemoteDiffModel {
             handle.remove_tag(const { CachedTag::from_tag(DES_TAG) })?;
             with_entity_scripts(handle, |luac| {
                 luac.set_script_throw_item(
-                    "mods/quant.ew/files/system/entity_sync_helper/item_notify.lua".into(),
+                    "mods/goyim.ew/files/system/entity_sync_helper/item_notify.lua".into(),
                 )
             })?;
             for entity in entity.children(None) {
                 with_entity_scripts_no_mgr(entity, |luac| {
                     luac.set_script_throw_item(
-                        "mods/quant.ew/files/system/entity_sync_helper/item_notify.lua".into(),
+                        "mods/goyim.ew/files/system/entity_sync_helper/item_notify.lua".into(),
                     )
                 })?;
             }
@@ -1874,7 +1874,7 @@ impl RemoteDiffModel {
                 let immortal = handle.add_component::<LuaComponent>()?;
                 immortal.add_tag("ew_immortal")?;
                 immortal.set_script_damage_about_to_be_received(
-                    "mods/quant.ew/files/system/entity_sync_helper/immortal.lua".into(),
+                    "mods/goyim.ew/files/system/entity_sync_helper/immortal.lua".into(),
                 )?;
                 handle
                     .add_component_with_var_name(const { VarName::from_str("ew_has_started") })?;
@@ -2660,7 +2660,7 @@ pub fn init_remote_entity(
     let immortal = handle.add_component::<LuaComponent>()?;
     immortal.add_tag("ew_immortal")?;
     immortal.set_script_damage_about_to_be_received(
-        "mods/quant.ew/files/system/entity_sync_helper/immortal.lua".into(),
+        "mods/goyim.ew/files/system/entity_sync_helper/immortal.lua".into(),
     )?;
     if let Some(var) = handle.get_var(const { VarName::from_str("ghost_id") })
         && let Ok(ent) = EntityID::try_from(var.value_int()? as isize)
@@ -2946,7 +2946,7 @@ fn _safe_wandkill(handle: &mut EntityHandle) -> eyre::Result<()> {
     //TODO ent mgr
     let lc = handle.add_component::<LuaComponent>()?;
     lc.set_script_source_file(
-        "mods/quant.ew/files/system/entity_sync_helper/scripts/killself.lua".into(),
+        "mods/goyim.ew/files/system/entity_sync_helper/scripts/killself.lua".into(),
     )?;
     handle.set_component_enabled(lc, true)?;
     lc.add_tag("enabled_in_inventory")?;
@@ -3070,7 +3070,7 @@ fn give_wand(
             }
             let lua = wand.add_component::<LuaComponent>()?;
             lua.set_script_source_file(
-                "mods/quant.ew/files/system/entity_sync_helper/scripts/kill_on_drop.lua".into(),
+                "mods/goyim.ew/files/system/entity_sync_helper/scripts/kill_on_drop.lua".into(),
             )?;
             lua.set_execute_every_n_frame(1)?;
             lua.set_execute_times(-1)?;

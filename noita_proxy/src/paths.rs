@@ -10,11 +10,16 @@ pub const DEFAULT_PROXY_LOG_OLD_NAME: &str = "ew_log_old.txt";
 pub const DEFAULT_PROXY_SETTINGS_NAME: &str = "proxy.ron";
 pub const DEFAULT_PROXY_SAVE_STATE_NAME: &str = "save_state"; // this is a dir
 
-pub const NOITA_QUANTEW_INSTALL: &str = "mods/quant.ew";
+pub const NOITA_QUANTEW_INSTALL: &str = "mods/goyim.ew";
 pub const QUANTEW_PLAYER_SPRITESHEET: &str = "files/system/player/unmodified.png";
 
-pub const PROJECT_DIRS_ORGANIZATION: &str = "quant";
-pub const PROJECT_DIRS_APPLICATION: &str = "entangledworlds";
+pub const PROJECT_DIRS_ORGANIZATION: &str = "slugma";
+pub const PROJECT_DIRS_APPLICATION: &str = "entangledgoyim";
+
+/// Where the original Entangled Worlds proxy (and Entangled Goyim before
+/// v1.0.3) kept its settings. Only read once, to bring settings over.
+pub const LEGACY_PROJECT_DIRS_ORGANIZATION: &str = "quant";
+pub const LEGACY_PROJECT_DIRS_APPLICATION: &str = "entangledworlds";
 
 // Linux only paths
 pub const STEAM_COMPATDATA_NOITA_SAVE: &str =
@@ -37,16 +42,16 @@ pub struct Paths {
     pub noita_exe: Option<PathBuf>,
 
     /// Usually
-    /// - Windows: `C:\Program Files (x86)\Steam\steamapps\common\Noita\mods\quant.ew`
-    /// - Linux: `$XDG_DATA_HOME/Steam/steamapps/common/Noita/mods/quant.ew`
+    /// - Windows: `C:\Program Files (x86)\Steam\steamapps\common\Noita\mods\goyim.ew`
+    /// - Linux: `$XDG_DATA_HOME/Steam/steamapps/common/Noita/mods/goyim.ew`
     ///
     /// This is not serialized because it's currently always realized from [`Self::noita_exe`].
     #[serde(skip)]
     pub noita_quantew_install: Option<PathBuf>,
 
     /// Usually
-    /// - Windows: `C:\Program Files (x86)\Steam\steamapps\common\Noita\mods\quant.ew\files\system\player\unmodified.png`
-    /// - Linux: `$XDG_DATA_HOME/Steam/steamapps/common/Noita/mods/quant.ew/files/system/player/unmodified.png`
+    /// - Windows: `C:\Program Files (x86)\Steam\steamapps\common\Noita\mods\goyim.ew\files\system\player\unmodified.png`
+    /// - Linux: `$XDG_DATA_HOME/Steam/steamapps/common/Noita/mods/goyim.ew/files/system/player/unmodified.png`
     ///
     /// This is not serialized because it's currently always realized from [`Self::noita_exe`].
     #[serde(skip)]
@@ -66,16 +71,16 @@ pub struct Paths {
     pub steam_install: Option<PathBuf>,
 
     /// Usually
-    /// - Windows: `%APPDATA%\quant\entangledworlds\proxy.ron`
-    /// - Linux: `$XDG_CONFIG_HOME/entangledworlds/proxy.ron`
+    /// - Windows: `%APPDATA%\slugma\entangledgoyim\proxy.ron`
+    /// - Linux: `$XDG_CONFIG_HOME/entangledgoyim/proxy.ron`
     ///
     /// This is not serialized because this path is always either taken from CLI args or searched.
     #[serde(skip)]
     pub proxy_settings: Option<PathBuf>,
 
     /// Usually
-    /// - Windows: `%APPDATA%\quant\entangledworlds\save_state\`
-    /// - Linux: `$XDG_DATA_HOME/entangledworlds/save_state/`
+    /// - Windows: `%APPDATA%\slugma\entangledgoyim\save_state\`
+    /// - Linux: `$XDG_DATA_HOME/entangledgoyim/save_state/`
     ///
     /// This is not serialized because this path is always either taken from CLI args or searched.
     #[serde(skip)]
@@ -112,6 +117,14 @@ impl Paths {
 
 pub fn project_dirs() -> Option<ProjectDirs> {
     ProjectDirs::from("", PROJECT_DIRS_ORGANIZATION, PROJECT_DIRS_APPLICATION)
+}
+
+pub fn legacy_project_dirs() -> Option<ProjectDirs> {
+    ProjectDirs::from(
+        "",
+        LEGACY_PROJECT_DIRS_ORGANIZATION,
+        LEGACY_PROJECT_DIRS_APPLICATION,
+    )
 }
 
 pub fn proxy_exe_dir() -> PathBuf {

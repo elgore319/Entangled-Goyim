@@ -1,4 +1,4 @@
-local ew_api = dofile_once("mods/quant.ew/files/api/ew_api.lua")
+local ew_api = dofile_once("mods/goyim.ew/files/api/ew_api.lua")
 
 -- Needs a unique, but preferably short identifier.
 local rpc = ew_api.new_rpc_namespace("api_example")

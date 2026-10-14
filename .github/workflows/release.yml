@@ -25,15 +25,15 @@ jobs:
           cargo +nightly build --release --target=i686-pc-windows-gnu
         working-directory: ./ewext
       - name: Copy ewext
-        run: cp ewext/target/i686-pc-windows-gnu/release/ewext.dll quant.ew/ewext.dll
+        run: cp ewext/target/i686-pc-windows-gnu/release/ewext.dll goyim.ew/ewext.dll
 
       - name: Create archive
         run: python scripts/ci_make_archives.py mod
 
       - uses: actions/upload-artifact@v4
         with:
-          name: quant.ew.zip
-          path: target/quant.ew.zip
+          name: goyim.ew.zip
+          path: target/goyim.ew.zip
 
   build-proxy-linux:
     name: Build proxy for linux
@@ -134,11 +134,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           merge-multiple: true
-      # Proxies from v1.0.0 look for noita_proxy-*.zip when they self-update,
-      # so also attach copies under the old names. Remove once nobody is on
-      # v1.0.0 any more.
-      - name: Add copies under the old proxy zip names
-        run: for f in goyim_proxy-*.zip; do cp "$f" "noita_proxy-${f#goyim_proxy-}"; done
       - uses: ncipollo/release-action@v1
         with:
           #draft: true

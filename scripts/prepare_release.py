@@ -79,7 +79,7 @@ def make_release_assets():
 
     try_remove("target/goyim_proxy-win.zip")
     try_remove("target/goyim_proxy-linux.zip")
-    try_remove("target/quant.ew.zip")
+    try_remove("target/goyim.ew.zip")
 
     print("Extracting steam dylib...")
 
@@ -99,9 +99,9 @@ def make_release_assets():
 
     print("Writing mod release...")
 
-    shutil.make_archive("target/quant.ew", "zip", "quant.ew")
+    shutil.make_archive("target/goyim.ew", "zip", "goyim.ew")
 
-    with ZipFile("target/quant.ew.zip", "a") as release:
+    with ZipFile("target/goyim.ew.zip", "a") as release:
         release.writestr("files/version.lua", f'return "{version}"')
 
 def main():
@@ -146,7 +146,7 @@ def main():
 
     notes.title("Installation")
     notes.p("Download and unpack `goyim_proxy-win.zip` or `goyim_proxy-linux.zip`, depending on your OS. After that, launch the proxy.")
-    notes.p("Proxy is able to download and install the mod automatically. There is no need to download the mod (`quant.ew.zip`) manually.")
+    notes.p("Proxy is able to download and install the mod automatically. There is no need to download the mod (`goyim.ew.zip`) manually.")
     notes.p("""You'll be prompted for a path to `noita.exe` when launching the proxy for the first time.
 It should be detected automatically as long as you use steam version of the game and steam is launched.
         """)
@@ -163,7 +163,7 @@ It should be detected automatically as long as you use steam version of the game
 
     title = input("Release title: ")
 
-    subprocess.call(["gh", "release", "create", tag, "--title", f"{tag} - {title}", "-F", notes_path, "./target/goyim_proxy-linux.zip", "./target/goyim_proxy-win.zip", "./target/quant.ew.zip"])
+    subprocess.call(["gh", "release", "create", tag, "--title", f"{tag} - {title}", "-F", notes_path, "./target/goyim_proxy-linux.zip", "./target/goyim_proxy-win.zip", "./target/goyim.ew.zip"])
 
 if __name__ == "__main__":
     main()
