@@ -262,6 +262,10 @@ end
 
 function module.on_local_player_spawn()
     if ctx.is_host then
+        -- The host's world is the one everyone plays in. Tell the proxy its
+        -- real seed, so clients starting a new run get this world even when
+        -- the host continued a save the proxy had a different seed for.
+        net.proxy_send("host_seed", tostring(StatsGetValue("world_seed")))
         return
     end
     local carry = read_carryover()
