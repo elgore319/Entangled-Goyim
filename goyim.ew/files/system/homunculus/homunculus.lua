@@ -71,9 +71,18 @@ local function get_entities(entity)
     end
     return homunculy, get_lukki(entity), ghost
 end
+-- Hard cap on how many copies of a remote player's summons we will create.
+-- The owner's game limits these itself, so anything past this is a bad
+-- message, and spawning without a cap can flood the world with entities.
+local MAX_MIRRORED = 16
+
 rpc.opts_reliable()
 function rpc.send_positions(ho, lu, gh, f)
-    local h, l, g = get_entities(ctx.rpc_player_data.entity)
+    local owner = ctx.rpc_player_data.entity
+    if owner == nil or not EntityGetIsAlive(owner) then
+        return
+    end
+    local h, l, g = get_entities(owner)
     if #ho ~= 0 then
         for i, child in ipairs(h) do
             if ho[i] == nil then
@@ -82,31 +91,33 @@ function rpc.send_positions(ho, lu, gh, f)
                 EntitySetTransform(child, ho[i][1], ho[i][2])
             end
         end
-        for i = 1, #ho - #h do
-            local n = EntityLoad("data/entities/misc/homunculus.xml", ho[#h + i][1], ho[#h + i][2])
-            util.make_ephemerial(n)
-            EntityAddChild(ctx.rpc_player_data.entity, n)
+        for i = #h + 1, math.min(#ho, MAX_MIRRORED) do
+            local n = EntityLoad("data/entities/misc/homunculus.xml", ho[i][1], ho[i][2])
+            util.make_mirror(n)
+            EntityAddChild(owner, n)
         end
     end
     if #lu ~= 0 then
         for i, child in ipairs(l) do
             if lu[i] == nil then
                 EntityKill(child)
-            else
+            elseif #(PhysicsBodyIDGetFromEntity(child) or {}) ~= 0 then
                 util.set_phys_info(child, lu[i][3], ctx.rpc_player_data.fps)
             end
         end
-        for i = 1, #lu - #l do
-            local n = EntityLoad("data/entities/misc/perks/lukki_minion.xml", lu[#l + i][1], lu[#l + i][2])
-            util.set_phys_info(n, lu[i][3], ctx.rpc_player_data.fps)
+        -- The physics body of a just-loaded minion isn't created until the
+        -- game updates it, and writing to it before then crashes Noita. Its
+        -- position gets set from the next message instead.
+        for i = #l + 1, math.min(#lu, MAX_MIRRORED) do
+            local n = EntityLoad("data/entities/misc/perks/lukki_minion.xml", lu[i][1], lu[i][2])
             EntityAddComponent(n, "VariableStorageComponent", {
                 name = "owner_id",
-                value_int = ctx.rpc_player_data.entity,
+                value_int = owner,
             })
             EntityRemoveComponent(n, EntityGetFirstComponent(n, "LuaComponent"))
             EntityAddTag(n, "perk_entity")
-            util.make_ephemerial(n)
-            add_lukki(ctx.rpc_player_data.entity, n)
+            util.make_mirror(n)
+            add_lukki(owner, n)
         end
     end
     if #gh ~= 0 then
