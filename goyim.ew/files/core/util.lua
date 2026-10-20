@@ -219,6 +219,22 @@ function util.make_ephemerial(ent)
     end
 end
 
+-- Prepares a local copy of something another peer owns (a summon following a
+-- remote player, for example): it is only moved by network messages, so the game
+-- must never unload or save it by itself. ewext strips the same components from
+-- every entity it copies from a peer (init_remote_entity) before doing the same.
+function util.make_mirror(ent)
+    if ent == nil or not EntityGetIsAlive(ent) then
+        return
+    end
+    for _, name in ipairs({ "CameraBoundComponent", "StreamingKeepAliveComponent" }) do
+        for _, comp in ipairs(EntityGetComponentIncludingDisabled(ent, name) or {}) do
+            EntityRemoveComponent(ent, comp)
+        end
+    end
+    util.make_ephemerial(ent)
+end
+
 -- Load an entity that doesn't get saved.
 function util.load_ephemerial(path, x, y)
     --local entity = EntityCreateNew()

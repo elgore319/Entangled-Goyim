@@ -229,8 +229,8 @@ function module.on_client_spawned(peer_id, player_data)
     if player_data.mutations.fungus then
         become_fungus(ent)
     end
-    if math.abs(player_data.mutations.halo) == 3 then
-        gain_halo(ent, player_data.mutations.halo == 3)
+    if math.abs(player_data.mutations.halo) >= 3 then
+        gain_halo(ent, player_data.mutations.halo >= 3)
     end
 end
 

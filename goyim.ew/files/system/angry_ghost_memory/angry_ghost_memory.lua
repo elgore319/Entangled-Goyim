@@ -9,7 +9,9 @@ function rpc.send_ghost_data(ghosts_memory)
                 "VariableStorageComponent",
                 "angry_ghost_projectile_memory"
             )
-            ComponentSetValue2(memory, "value_string", ghosts_memory[i][1])
+            if memory ~= nil then
+                ComponentSetValue2(memory, "value_string", ghosts_memory[i][1])
+            end
         else
             EntityKill(entity)
         end
@@ -27,7 +29,7 @@ function ghost.on_world_update()
             "VariableStorageComponent",
             "angry_ghost_projectile_memory"
         )
-        table.insert(ghosts_memory, { ComponentGetValue2(memory, "value_string") })
+        table.insert(ghosts_memory, { memory and ComponentGetValue2(memory, "value_string") or "" })
     end
     if #ghosts_memory ~= 0 then
         rpc.send_ghost_data(ghosts_memory)

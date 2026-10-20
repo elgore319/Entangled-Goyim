@@ -145,7 +145,24 @@ local function give_one_perk(entity_who_picked, perk_info, count, allow_globals,
         end
 
         if perk_info.func ~= nil then
+            local is_remote = entity_who_picked ~= ctx.my_player.entity
+            local children_before = {}
+            if is_remote then
+                for _, child in ipairs(EntityGetAllChildren(entity_who_picked) or {}) do
+                    children_before[child] = true
+                end
+            end
             perk_info.func(0, entity_who_picked, "", count)
+            -- Summons (ghosts and the like) that a perk attaches to another
+            -- player's copy only follow that copy around, so they must not be
+            -- unloaded or saved by the game on their own.
+            if is_remote then
+                for _, child in ipairs(EntityGetAllChildren(entity_who_picked) or {}) do
+                    if not children_before[child] then
+                        util.make_mirror(child)
+                    end
+                end
+            end
             if perk_info.id == "ATTACK_FOOT" and peer_id ~= nil then
                 set_lukki(entity_who_picked, peer_id)
             end
