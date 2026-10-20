@@ -7,6 +7,9 @@
 - The mod download is now `goyim.ew.zip`.
 - **Crash recovery:** the mod keeps its own backup of your wands, items, spells, perks, gold and HP. If a crash leaves you with a fresh starting character when you continue, a prompt offers to restore them. The backup is cleared when you die, so it can't bring back items after a death.
 
+- **Summon perks no longer crash other players:** Homunculus, the ghost perks (Angry Ghost, Hungry Ghost, Mournful Spirit) and Tiny Lukki crashed every other player's game, and kept crashing them on rejoin. Fixes for how the other players' games copy those summons should stop this. Angry Ghost also no longer crashes if it can't load the projectile it copies.
+- The halo now shows again after rejoining for players with a halo level past 3.
+
 ### Updating from an earlier version
 If you're on v1.0.0, download the new proxy below by hand once; its updater can't find the renamed downloads. From v1.0.1 onward, the proxy's update button works.
 
