@@ -38,6 +38,9 @@ pub(crate) enum NetMsg {
     AudioData(Vec<Vec<u8>>, bool, i32, i32, f32),
     MapData(FxHashMap<ChunkCoord, ChunkData>),
     MatData(FxHashMap<u16, u32>),
+    // The host's real world seed, sent when it differs from the lobby seed
+    // (usually because the host continued a saved run).
+    SetSeed(u64),
 }
 
 impl From<MessageRequest<WorldNetMessage>> for MessageRequest<NetMsg> {
