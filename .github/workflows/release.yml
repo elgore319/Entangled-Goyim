@@ -1,6 +1,13 @@
 name: release
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to create and release, e.g. v1.0.3. Must match the version in noita_proxy/Cargo.toml."
+        required: true
 
 jobs:
   build-mod:
@@ -120,7 +127,7 @@ jobs:
 
   release:
     name: Release
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-22.04
     permissions:
       contents: write
@@ -129,7 +136,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          sparse-checkout: last_release_notes.md
+          sparse-checkout: |
+            last_release_notes.md
+            noita_proxy/Cargo.toml
+      - name: Check tag matches proxy version
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          version=$(grep -m1 '^version' noita_proxy/Cargo.toml | cut -d '"' -f2)
+          if [ "$TAG" != "v$version" ]; then
+            echo "Tag $TAG does not match noita_proxy version $version"
+            exit 1
+          fi
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v4
         with:
@@ -139,3 +157,5 @@ jobs:
           #draft: true
           artifacts: "*.zip"
           bodyFile: last_release_notes.md
+          tag: ${{ inputs.tag || github.ref_name }}
+          commit: ${{ github.sha }}
