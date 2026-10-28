@@ -1,19 +1,10 @@
-## Entangled Goyim v1.0.3
+## Entangled Goyim v1.0.4
 
-### Changes
-- The mod now installs into its own folder, `mods/goyim.ew`, so it can sit next to the original Entangled Worlds mod (`mods/quant.ew`) instead of overwriting it.
-- The proxy keeps its settings and saved runs in its own folder too. The first time it starts, it copies your settings (nickname, colors, Noita location) from the old folder.
-- When the proxy enables Slugma's Entangled Goyim, it turns off Quant's Entangled Worlds. If both end up enabled, Slugma's Entangled Goyim stays inactive and tells you to disable one.
-- The mod download is now `goyim.ew.zip`.
-- **Crash recovery:** the mod keeps its own backup of your wands, items, spells, perks, gold and HP. If a crash leaves you with a fresh starting character when you continue, a prompt offers to restore them. The backup is cleared when you die, so it can't bring back items after a death.
+### Fixes
+- **New Game no longer crashes Noita.** v1.0.3's `ewext.dll` was built with a newer Rust nightly that stores thread-local data in a way that crashes as soon as Noita loads the mod, so the game closed when you pressed New Game. The mod is now built with the same pinned toolchain and build image the original Entangled Worlds uses after it hit the same crash.
 
-- **Summon perks no longer crash other players:** Homunculus, the ghost perks (Angry Ghost, Hungry Ghost, Mournful Spirit) and Tiny Lukki crashed every other player's game, and kept crashing them on rejoin. Fixes for how the other players' games copy those summons should stop this. Angry Ghost also no longer crashes if it can't load the projectile it copies.
-- The halo now shows again after rejoining for players with a halo level past 3.
-
-### Updating from an earlier version
-If you're on v1.0.0, download the new proxy below by hand once; its updater can't find the renamed downloads. From v1.0.1 onward, the proxy's update button works.
-
-The proxy installs the mod into the new folder automatically. Your old `mods/quant.ew` folder is left alone, because the original mod may still be using it. If you don't play the original mod, you can delete that folder.
+### Updating
+Use the proxy's update button (or download the new proxy below). The proxy then installs the matching v1.0.4 mod automatically.
 
 ### Installation
 
