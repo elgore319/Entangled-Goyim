@@ -91,7 +91,7 @@ rustPlatform.buildRustPackage (
 
     postFixup =
       let
-        bin = "$out/bin/noita_proxy";
+        bin = "$out/bin/goyim_proxy";
       in
       if isDarwin then
         "install_name_tool -change @loader_path/libsteam_api.dylib ${steamworksRedist}/lib/libsteam_api.dylib ${bin}"
@@ -109,7 +109,7 @@ rustPlatform.buildRustPackage (
         name = "noita_proxy";
         desktopName = "Noita Entangled Worlds";
         comment = meta.description;
-        exec = "noita_proxy";
+        exec = "goyim_proxy";
         icon = "noita_proxy";
         categories = [
           "Game"
@@ -140,7 +140,7 @@ rustPlatform.buildRustPackage (
         "aarch64-darwin"
       ];
       maintainers = with lib.maintainers; [ spikespaz ];
-      mainProgram = "noita_proxy";
+      mainProgram = "goyim_proxy";
     };
   }
 )

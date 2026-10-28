@@ -28,7 +28,7 @@ modman_downloading = 正在下载 Mod...
 modman_receiving_rel_info = 正在接收版本信息...
 modman_unpacking = 正在解压 Mod...
 modman_installed = Mod 已安装！
-modman_will_install_to = noita_proxy 将会把 Mod 安装到：
+modman_will_install_to = goyim_proxy 将会把 Mod 安装到：
 modman_another_path = 选择其他路径
 
 player_host = 房主
@@ -43,7 +43,7 @@ version_new_available = 有可用的更新：版本{ $new_version }
 selfupdate = 软件更新
 selfupdate_confirm = 确认更新
 selfupdate_receiving_rel_info = 正在接收版本信息...
-selfupdate_updated = noita_proxy 已更新！重启软件以完成更新。
+selfupdate_updated = goyim_proxy 已更新！重启软件以完成更新。
 selfupdate_unpacking = 正在解压中...
 
 noita_not_yet = 还没准备好，请等待Noita启动。
@@ -60,14 +60,14 @@ ip_connect = 连接至 IP
 ip_host = 创建服务器
 
 error_occured = 发生错误：
-error_missing_version_field = 大厅没有版本字段。该大厅是由旧版 noita_proxy 创建的。
-error_version_mismatch = 版本不匹配，大厅是由不同版本的 noita_proxy 创建的：{ $remote_version }。你当前安装的是 { $current_version }。
+error_missing_version_field = 大厅没有版本字段。该大厅是由旧版 goyim_proxy 创建的。
+error_version_mismatch = 版本不匹配，大厅是由不同版本的 goyim_proxy 创建的：{ $remote_version }。你当前安装的是 { $current_version }。
 error_lobby_does_not_exist = 大厅不存在。请确认主菜单中 Mina 颜色选择器上方的 Steam 网络设置与房主一致。
 
 launcher_already_started = Noita 已启动。
 launcher_no_command = 无法启动 Noita：没有启动命令。
 launcher_no_command_2 = 可以使用 --launch-cmd <command> 选项指定启动命令。
-launcher_no_command_3 = 你可以在 Steam 启动选项中填入 `noita_proxy --launch-cmd "%command%"`，以拦截 Steam 用来启动游戏的命令。
+launcher_no_command_3 = 你可以在 Steam 启动选项中填入 `goyim_proxy --launch-cmd "%command%"`，以拦截 Steam 用来启动游戏的命令。
 launcher_start_game = 启动 Noita
 launcher_end_run = 结束游戏
 launcher_end_run_confirm = 确认
@@ -91,7 +91,7 @@ connect_settings_autostart = 自动启动游戏
 ## Game settings
 
 Player-have-same-starting-loadout = 玩家拥有相同的初始装备
-connect_settings_spacewars = 即使你没有 Steam 版游戏(例如使用 GOG 版)，也允许使用 Steam 网络联机。所有玩家都需要勾选此项才能生效，重启 noita_proxy 后生效
+connect_settings_spacewars = 即使你没有 Steam 版游戏(例如使用 GOG 版)，也允许使用 Steam 网络联机。所有玩家都需要勾选此项才能生效，重启 goyim_proxy 后生效
 Health-per-player = 每个玩家的生命值
 Enable-friendly-fire = 启用友军伤害，允许在游戏设置中选择队伍
 Have-perk-pools-be-independent-of-each-other = 启用神山独立天赋池
