@@ -61,8 +61,21 @@ function ctx.add_hook(hook_name, system_name, fn)
         else
             setmetatable(tbl, {
                 __call = function(self, ...)
-                    for _, entry in ipairs(self) do
-                        util.tpcall(entry.fn, ...)
+                    local dev = ctx.dev
+                    if dev ~= nil then
+                        -- Dev overlay is shown: time each system (see dev_overlay.lua).
+                        for _, entry in ipairs(self) do
+                            local start_time = GameGetRealWorldTimeSinceStarted()
+                            util.tpcall(entry.fn, ...)
+                            local delta = GameGetRealWorldTimeSinceStarted() - start_time
+                            local name = entry.system_name
+                            dev.hooks[name] = (dev.hooks[name] or 0) + delta
+                            dev.frame_hooks[name] = (dev.frame_hooks[name] or 0) + delta
+                        end
+                    else
+                        for _, entry in ipairs(self) do
+                            util.tpcall(entry.fn, ...)
+                        end
                     end
                 end,
             })

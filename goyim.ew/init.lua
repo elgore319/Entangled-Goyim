@@ -37,6 +37,7 @@ player_fns = dofile_once("mods/goyim.ew/files/core/player_fns.lua")
 
 local cos = dofile_once("mods/goyim.ew/files/system/player/player_cosmetics.lua")
 local crash_recovery = dofile_once("mods/goyim.ew/files/system/crash_recovery/crash_recovery.lua")
+local dev_overlay = dofile_once("mods/goyim.ew/files/system/dev_overlay/dev_overlay.lua")
 
 local perk_fns = dofile_once("mods/goyim.ew/files/core/perk_fns.lua")
 
@@ -78,6 +79,7 @@ local function load_modules()
     ctx.load_system("ewext_init")
     ctx.load_system("seed_sync")
     ctx.load_system("crash_recovery")
+    ctx.load_system("dev_overlay")
 
     ctx.dofile_and_add_hooks("mods/goyim.ew/files/system/player_sync.lua")
 
@@ -397,6 +399,7 @@ end)
 function OnPausedChanged(paused, is_wand_pickup)
     ctx.is_paused = paused
     ctx.is_wand_pickup = is_wand_pickup
+    dev_overlay.reset_frame_timer()
 
     local players = EntityGetWithTag("player_unit") or {}
 
@@ -518,6 +521,8 @@ local function on_world_pre_update_inner()
 
     GlobalsSetValue("ew_player_rng", tostring(GameGetFrameNum()))
 
+    dev_overlay.frame_start()
+
     net.update()
     if ctx.run_ended then
         return
@@ -635,7 +640,11 @@ function OnWorldPreUpdate() -- This is called every time the game is about to st
         end
         return
     end
+    local start_time = ctx.dev and GameGetRealWorldTimeSinceStarted()
     util.tpcall(on_world_pre_update_inner)
+    if start_time and ctx.dev then
+        dev_overlay.add_mod_time(GameGetRealWorldTimeSinceStarted() - start_time)
+    end
     --[[if InputIsKeyJustDown(11) then
         local x, y = EntityGetTransform(ctx.my_player.entity)
         for _ = 1, 16 do
@@ -684,7 +693,11 @@ function OnWorldPostUpdate() -- This is called every time the game has finished 
     if ctx.run_ended then
         util.tpcall(dofile_once("mods/goyim.ew/files/system/seed_sync/seed_sync.lua").draw_after_run_end)
     end
+    local start_time = ctx.dev and GameGetRealWorldTimeSinceStarted()
     util.tpcall(on_world_post_update_inner)
+    if start_time and ctx.dev then
+        dev_overlay.add_mod_time(GameGetRealWorldTimeSinceStarted() - start_time)
+    end
     ctx.events = {}
     net.proxy_send("flush", "")
     ctx.finish()

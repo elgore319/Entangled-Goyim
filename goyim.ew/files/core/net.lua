@@ -15,6 +15,9 @@ net._rpc_inner = {
 net.rpc = {}
 net.connect_failed = false
 
+-- Running totals for the dev overlay.
+net.stats = { sent_msgs = 0, sent_bytes = 0, recv_msgs = 0, recv_bytes = 0 }
+
 local rpc_inner = net._rpc_inner
 
 local rpc_base = {}
@@ -169,6 +172,8 @@ function net.update()
         if msg == nil then
             break
         end
+        net.stats.recv_msgs = net.stats.recv_msgs + 1
+        net.stats.recv_bytes = net.stats.recv_bytes + string.len(msg)
         handle_message(msg)
     end
     ewext.netmanager_flush()
@@ -192,15 +197,22 @@ local DEST_FLAGS = 0
 
 local MOD_RELIABLE = 4 -- 0b101
 
+local function count_sent(msg)
+    net.stats.sent_msgs = net.stats.sent_msgs + 1
+    net.stats.sent_bytes = net.stats.sent_bytes + string.len(msg) + 1
+end
+
 function net.send_internal(msg, dest, reliable)
     if reliable then
         dest = dest + MOD_RELIABLE
     end
+    count_sent(msg)
     ewext.netmanager_send(string.char(dest) .. msg)
 end
 
 function net.send_flags(flags)
     local dest = DEST_FLAGS + MOD_RELIABLE
+    count_sent(flags)
     ewext.netmanager_send(string.char(dest) .. flags)
 end
 
@@ -229,6 +241,7 @@ function net.proxy_send(key, value)
 end
 
 function net.proxy_bin_send(key, value)
+    count_sent(value)
     ewext.netmanager_send(string.char(DEST_PROXY_BIN, key) .. value)
 end
 

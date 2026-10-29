@@ -183,6 +183,15 @@ local function build_settings()
                     scope = MOD_SETTING_SCOPE_RUNTIME,
                 },
                 {
+                    id = "rebind_dev_overlay",
+                    ui_name = "dev overlay",
+                    ui_description = "show/hide the dev stats overlay",
+                    value_default = "60",
+                    ui_fn = ui_get_input,
+                    is_waiting_for_input = false,
+                    scope = MOD_SETTING_SCOPE_RUNTIME,
+                },
+                {
                     id = "no_gamepad",
                     ui_name = "dont add keybinds for gamepad",
                     ui_description = ":(",
@@ -196,6 +205,21 @@ local function build_settings()
             ui_name = "ui",
             ui_description = "ui",
             settings = {
+                {
+                    id = "dev_overlay",
+                    ui_name = "dev overlay",
+                    ui_description = "show fps, frame times, slowest systems, network and entity stats in a bottom corner. frames over 50ms are logged as [dev] lag spike lines",
+                    value_default = false,
+                    scope = MOD_SETTING_SCOPE_RUNTIME,
+                },
+                {
+                    id = "dev_overlay_corner",
+                    ui_name = "dev overlay corner",
+                    ui_description = "which bottom corner the dev overlay sits in",
+                    value_default = "right",
+                    values = { { "right", "bottom right" }, { "left", "bottom left" } },
+                    scope = MOD_SETTING_SCOPE_RUNTIME,
+                },
                 {
                     id = "notext",
                     ui_name = "no text",
