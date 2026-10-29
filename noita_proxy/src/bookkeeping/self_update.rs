@@ -170,11 +170,11 @@ fn proxy_asset_name() -> &'static str {
 
 fn proxy_bin_name() -> &'static str {
     if cfg!(target_os = "windows") {
-        "noita_proxy.exe"
+        "goyim_proxy.exe"
     } else if cfg!(target_os = "macos") {
-        "noita_proxy"
+        "goyim_proxy"
     } else {
-        "noita_proxy.x86_64"
+        "goyim_proxy.x86_64"
     }
 }
 

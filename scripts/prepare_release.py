@@ -88,13 +88,13 @@ def make_release_assets():
     print("Writing win release...")
 
     with ZipFile("target/goyim_proxy-win.zip", "w") as release:
-        release.write("noita_proxy/target/x86_64-pc-windows-gnu/release/noita_proxy.exe", arcname="noita_proxy.exe", compress_type=COMPRESS_TYPE, compresslevel=COMPRESS_LEVEL)
+        release.write("noita_proxy/target/x86_64-pc-windows-gnu/release/goyim_proxy.exe", arcname="goyim_proxy.exe", compress_type=COMPRESS_TYPE, compresslevel=COMPRESS_LEVEL)
         release.write("redist/steam_api64.dll", arcname="steam_api64.dll", compress_type=COMPRESS_TYPE, compresslevel=COMPRESS_LEVEL)
 
     print("Writing linux release...")
 
     with ZipFile("target/goyim_proxy-linux.zip", "w") as release:
-        release.write("noita_proxy/target/x86_64-unknown-linux-gnu/release-lto/noita_proxy", arcname="noita_proxy.x86_64", compress_type=COMPRESS_TYPE, compresslevel=COMPRESS_LEVEL)
+        release.write("noita_proxy/target/x86_64-unknown-linux-gnu/release-lto/goyim_proxy", arcname="goyim_proxy.x86_64", compress_type=COMPRESS_TYPE, compresslevel=COMPRESS_LEVEL)
         release.write("redist/libsteam_api.so", arcname="libsteam_api.so", compress_type=COMPRESS_TYPE, compresslevel=COMPRESS_LEVEL)
 
     print("Writing mod release...")
