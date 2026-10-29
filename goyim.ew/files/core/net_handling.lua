@@ -83,6 +83,10 @@ function net_handling.proxy.debug(_, value)
     ctx.debug = value == "true"
 end
 
+function net_handling.proxy.dev_stats(_, value, peers)
+    dofile_once("mods/goyim.ew/files/system/dev_overlay/dev_overlay.lua").on_proxy_stats(value, peers)
+end
+
 function net_handling.proxy.host_id(_, value)
     ctx.host_id = value
     ctx.is_host = ctx.my_id == ctx.host_id

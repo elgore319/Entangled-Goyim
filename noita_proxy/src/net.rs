@@ -44,6 +44,7 @@ use tangled::Reliability;
 use tracing::{error, info, warn};
 mod audio;
 mod des;
+mod dev_stats;
 pub mod messages;
 mod proxy_opt;
 pub mod steam_networking;
@@ -248,6 +249,8 @@ pub struct NetManager {
     pub players_sprite: Mutex<FxHashMap<OmniPeerId, (Option<WorldPos>, bool, bool, RgbaImage)>>,
     pub reset_map: AtomicBool,
     colors: Mutex<FxHashMap<u16, u32>>,
+    /// Set while the mod's dev overlay is shown; see `dev_stats`.
+    dev_stats_wanted: AtomicBool,
 }
 
 impl NetManager {
@@ -290,6 +293,7 @@ impl NetManager {
             no_chunkmap_to_players: AtomicBool::new(true),
             no_chunkmap: AtomicBool::new(true),
             colors: Default::default(),
+            dev_stats_wanted: AtomicBool::new(false),
         }
         .into()
     }
@@ -456,6 +460,7 @@ impl NetManager {
             audio: audio_state,
         };
         let mut last_iter = Instant::now();
+        let mut dev_stats = dev_stats::DevStats::default();
         let path = crate::player_path(self.init_settings.paths.noita_quantew_install.clone());
         let player_image = if path.exists() {
             image::open(path)
@@ -598,6 +603,7 @@ impl NetManager {
 
             let updates = state.world.get_noita_updates();
             for update in updates {
+                dev_stats.on_world_update_to_game(update.len());
                 state.try_ms_write(&ws_encode_proxy_bin(0, &update));
             }
 
@@ -610,6 +616,7 @@ impl NetManager {
             }
 
             let des_pending = state.des.pending_messages();
+            dev_stats.on_des_msgs_out(des_pending.len());
             for (dest, msg) in des_pending {
                 self.send(dest, &NetMsg::ForwardProxyToDes(msg), Reliability::Reliable);
             }
@@ -680,6 +687,13 @@ impl NetManager {
             // Don't do excessive busy-waiting;
             let min_update_time = Duration::from_millis(8);
             let elapsed = last_iter.elapsed();
+            dev_stats.on_tick(elapsed);
+            if !self.dev_stats_wanted.load(Ordering::Relaxed) || state.ms.is_none() {
+                // Start fresh so the first report after enabling isn't skewed by old data.
+                dev_stats = dev_stats::DevStats::default();
+            } else if let Some(report) = dev_stats.take_report(&self.peer) {
+                state.try_ms_write(&ws_encode_proxy("dev_stats", report));
+            }
             if elapsed < min_update_time {
                 thread::sleep(min_update_time - elapsed);
             }
@@ -1529,6 +1543,10 @@ impl NetManager {
                     .cut_through_world_explosion(std::mem::take(&mut state.explosion_data));
             }
             Some("flush") => self.peer.flush(),
+            Some("dev_stats") => {
+                let wanted = msg.next() == Some("1");
+                self.dev_stats_wanted.store(wanted, Ordering::Relaxed);
+            }
             key => {
                 error!("Unknown msg from mod: {:?}", key)
             }
