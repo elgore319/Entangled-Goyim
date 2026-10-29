@@ -3,7 +3,7 @@
 --
 -- Noita only writes the player to its save at certain points, so after a
 -- crash "Continue" can load the world but a brand-new starting character.
--- This system writes its own backup while the player is alive: whenever the
+-- This system writes its own backup while the player is alive: soon after the
 -- inventory changes, and when perks, gold or HP change (checked every 10 s).
 -- When the player spawns into the same run (same host, run number and world
 -- seed) looking like a fresh character while the backup shows real
@@ -26,6 +26,10 @@ local BACKUP_INTERVAL_FRAMES = 60 * 10
 -- Frames to wait after spawning before comparing, so the loaded inventory,
 -- perks and gold are in place.
 local CHECK_DELAY_FRAMES = 60
+-- Inventory changes are written at most this often. Writing the file is
+-- done on the game thread, so writing on every change (buying, picking up
+-- and sorting spells in a holy mountain) caused small hitches.
+local INVENTORY_WRITE_INTERVAL_FRAMES = 60 * 2
 
 local gui = GuiCreate()
 
@@ -35,6 +39,9 @@ local backups_enabled = false
 local check_frame = nil
 local offered = nil
 local last_backup_frame = 0
+local last_inventory_write_frame = -INVENTORY_WRITE_INTERVAL_FRAMES
+-- The inventory changed since the last backup and is waiting to be written.
+local inventory_dirty = false
 -- The latest serialized inventory, captured when the mod sends it to the
 -- other players, so backups don't serialize items a second time.
 local latest_items = nil
@@ -163,9 +170,7 @@ function module.on_inventory_sent(items, spells)
     if spells ~= nil then
         latest_spells = spells
     end
-    if backups_enabled then
-        take_backup()
-    end
+    inventory_dirty = true
 end
 
 function module.on_local_player_spawn()
@@ -244,14 +249,23 @@ function module.on_world_update()
         return
     end
     backup_cleared = false
-    if backups_enabled and GameGetFrameNum() - last_backup_frame >= BACKUP_INTERVAL_FRAMES then
-        last_backup_frame = GameGetFrameNum()
+    if not backups_enabled then
+        return
+    end
+    local frame = GameGetFrameNum()
+    if inventory_dirty and frame - last_inventory_write_frame >= INVENTORY_WRITE_INTERVAL_FRAMES then
+        inventory_dirty = false
+        last_inventory_write_frame = frame
+        take_backup()
+    elseif frame - last_backup_frame >= BACKUP_INTERVAL_FRAMES then
+        last_backup_frame = frame
         take_backup()
     end
 end
 
 function module.on_player_died()
     backups_enabled = false
+    inventory_dirty = false
     delete_backup()
 end
 

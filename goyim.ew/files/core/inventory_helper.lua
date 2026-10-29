@@ -426,6 +426,41 @@ function inventory_helper.has_inventory_changed(player_data)
     return inventory_hash ~= prev_inventory
 end
 
+-- A cheap summary of what's in the inventory: which items sit in which
+-- slots, which spells sit in which wand slots, and how full each flask or
+-- pouch is. Used to tell whether closing the inventory changed anything.
+function inventory_helper.content_key(player_data)
+    if player_data.entity == nil or not EntityGetIsAlive(player_data.entity) then
+        return nil
+    end
+    local parts = {}
+    local function add_item(item)
+        local item_comp = EntityGetFirstComponentIncludingDisabled(item, "ItemComponent")
+        local slot_x, slot_y = -1, -1
+        if item_comp ~= nil then
+            slot_x, slot_y = ComponentGetValue2(item_comp, "inventory_slot")
+        end
+        table.insert(parts, item .. ":" .. slot_x .. ":" .. slot_y)
+    end
+    for _, item in ipairs(GameGetAllInventoryItems(player_data.entity) or {}) do
+        add_item(item)
+        for _, child in ipairs(EntityGetAllChildren(item) or {}) do
+            add_item(child)
+        end
+        local mat_inv = EntityGetFirstComponentIncludingDisabled(item, "MaterialInventoryComponent")
+        if mat_inv ~= nil then
+            local sum = 0
+            for mat, amount in ipairs(ComponentGetValue2(mat_inv, "count_per_material_type") or {}) do
+                if amount ~= 0 then
+                    sum = sum + mat * 7919 + amount
+                end
+            end
+            table.insert(parts, "m" .. sum)
+        end
+    end
+    return table.concat(parts, ",")
+end
+
 function inventory_helper.setup_inventory()
     for _, ent in ipairs(inventory_helper.get_all_inventory_items(ctx.my_player) or {}) do
         ensure_notify_component(ent)

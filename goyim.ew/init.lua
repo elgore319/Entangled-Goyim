@@ -511,6 +511,12 @@ end
 
 local last_n = 1
 
+local INVENTORY_OPEN_SEND_FRAMES = 60 * 3
+local inventory_just_closed = false
+local inventory_send_pending = false
+local last_inventory_send_frame = 0
+local last_sent_inventory_key = nil
+
 local function on_world_pre_update_inner()
     if ctx.my_player == nil or ctx.my_player.entity == nil then
         return
@@ -527,7 +533,7 @@ local function on_world_pre_update_inner()
     if inventory_gui_comp and inventory_gui_comp ~= 0 then
         local inventory_open = ComponentGetValue2(inventory_gui_comp, "mActive")
         if ctx.is_inventory_open and not inventory_open then
-            ctx.events.inventory_maybe_just_changed = true
+            inventory_just_closed = true
         end
         ctx.is_inventory_open = inventory_open
     end
@@ -548,16 +554,34 @@ local function on_world_pre_update_inner()
         player_fns.respawn_if_necessary()
     end
 
-    local sha_check = GameGetFrameNum() % 5 == 0 and inventory_helper.has_inventory_changed(ctx.my_player)
-    if
-        ctx.events.new_player_just_connected
+    -- Every inventory send makes each other player throw away and rebuild
+    -- this player's whole inventory, which is a frame hitch on their side.
+    -- While the inventory is open (editing wands, mostly in holy mountains)
+    -- every spell moved changes the inventory, so those changes are held and
+    -- sent when it closes, or every INVENTORY_OPEN_SEND_FRAMES at most.
+    if GameGetFrameNum() % 5 == 0 and inventory_helper.has_inventory_changed(ctx.my_player) then
+        inventory_send_pending = true
+    end
+    local frame = GameGetFrameNum()
+    local send_inventory = ctx.events.new_player_just_connected
         or ctx.events.inventory_maybe_just_changed
-        or sha_check
         or cross_force_send_inventory
-    then
+    if not send_inventory and inventory_send_pending then
+        send_inventory = not ctx.is_inventory_open or frame - last_inventory_send_frame >= INVENTORY_OPEN_SEND_FRAMES
+    end
+    if not send_inventory and inventory_just_closed then
+        -- Opening and closing the inventory without moving anything used to
+        -- resend it every time. Only send when something in it changed.
+        send_inventory = inventory_helper.content_key(ctx.my_player) ~= last_sent_inventory_key
+    end
+    inventory_just_closed = false
+    if send_inventory then
         cross_force_send_inventory = false
+        inventory_send_pending = false
+        last_inventory_send_frame = frame
         local inventory_state, spells = player_fns.serialize_items(ctx.my_player)
         if inventory_state ~= nil then
+            last_sent_inventory_key = inventory_helper.content_key(ctx.my_player)
             net.send_player_inventory(inventory_state, spells)
             crash_recovery.on_inventory_sent(inventory_state, spells)
         end
