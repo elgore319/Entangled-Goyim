@@ -75,12 +75,7 @@ impl OmniPeerId {
 pub enum OmniNetworkEvent {
     PeerConnected(OmniPeerId),
     PeerDisconnected(OmniPeerId),
-    Message {
-        src: OmniPeerId,
-        data: Vec<u8>,
-    },
-    /// Reliable messages to this peer have been backlogged for too long. Steam only.
-    SendBacklogStuck(OmniPeerId),
+    Message { src: OmniPeerId, data: Vec<u8> },
 }
 
 impl From<tangled::NetworkEvent> for OmniNetworkEvent {

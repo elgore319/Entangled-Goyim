@@ -758,19 +758,6 @@ impl NetManager {
                     self.back_out.store(true, Ordering::Relaxed)
                 }
             }
-            omni::OmniNetworkEvent::SendBacklogStuck(id) => {
-                if self.is_host() {
-                    error!(
-                        "Kicking {id}: our reliable messages to them have been backed up for too long"
-                    );
-                    self.kick_list.lock().unwrap().push(id);
-                } else {
-                    error!(
-                        "Leaving the lobby: our reliable messages to {id} have been backed up for too long"
-                    );
-                    self.back_out.store(true, Ordering::Relaxed);
-                }
-            }
             omni::OmniNetworkEvent::Message { src, data } => {
                 let Some(net_msg) = decompress_bounded(&data)
                     .and_then(|decomp| bitcode::decode::<NetMsg>(&decomp).ok())
