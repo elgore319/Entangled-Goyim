@@ -219,6 +219,9 @@ function OnProjectileFired(
     multicast_index,
     unknown3
 )
+    if net.lost then
+        return
+    end
     ctx.hook.on_projectile_fired(
         shooter_id,
         projectile_id,
@@ -635,6 +638,16 @@ function OnWorldPreUpdate() -- This is called every time the game is about to st
         end
         return
     end
+    if net.lost then
+        if GameGetFrameNum() % 600 == 0 then
+            if net.host_left then
+                GamePrint("The host ended the lobby. Multiplayer has stopped for this run.")
+            else
+                GamePrint("Lost connection to the proxy. Multiplayer has stopped for this run.")
+            end
+        end
+        return
+    end
     util.tpcall(on_world_pre_update_inner)
     --[[if InputIsKeyJustDown(11) then
         local x, y = EntityGetTransform(ctx.my_player.entity)
@@ -678,7 +691,7 @@ local function on_world_post_update_inner()
 end
 
 function OnWorldPostUpdate() -- This is called every time the game has finished updating the world
-    if net.connect_failed then
+    if net.connect_failed or net.lost then
         return
     end
     if ctx.run_ended then
@@ -745,6 +758,9 @@ function OnModPostInit()
 end
 
 function OnPlayerDied(player_entity)
+    if net.lost then
+        return
+    end
     ctx.hook.on_player_died(player_entity)
     print("player died")
 end

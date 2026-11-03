@@ -748,15 +748,27 @@ impl NetManager {
                 state.try_ms_write(&ws_encode_proxy("join", id.as_hex()));
             }
             omni::OmniNetworkEvent::PeerDisconnected(id) => {
+                if id == self.peer.host_id() && !self.is_host() {
+                    // The host ended the lobby. Tell the game first so it can stop
+                    // multiplayer cleanly before this proxy goes back to the menu and
+                    // the socket closes. The host's entities are not mass-removed:
+                    // nothing will sync them anymore, and killing every enemy and
+                    // item the host owned in one frame is pointless at this point.
+                    info!("Host left the lobby");
+                    state.try_ms_write(&ws_encode_proxy("leave", id.as_hex()));
+                    state.try_ms_write(&ws_encode_proxy("host_left", id.as_hex()));
+                    if let Some(ws) = &mut state.ms {
+                        let _ = ws.flush();
+                    }
+                    self.back_out.store(true, Ordering::Relaxed);
+                    return;
+                }
                 state.try_ms_write(&ws_encode_proxy("leave", id.as_hex()));
                 state.world.handle_peer_left(id);
                 state.des.noita_disconnected(id);
                 state.try_ms_write(&NoitaInbound::ProxyToDes(ProxyToDes::RemoveEntities(
                     id.into(),
                 )));
-                if id == self.peer.host_id() {
-                    self.back_out.store(true, Ordering::Relaxed)
-                }
             }
             omni::OmniNetworkEvent::SendBacklogStuck(id) => {
                 if self.is_host() {

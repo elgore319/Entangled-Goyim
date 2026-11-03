@@ -137,6 +137,12 @@ function net_handling.proxy.leave(_, peer_id)
     end
 end
 
+function net_handling.proxy.host_left(_, _)
+    -- The proxy closes the connection right after this; net.lua turns that into
+    -- a clean stop, this only picks the message the player sees.
+    net.host_left = true -- the global from init.lua
+end
+
 function net_handling.mod.inventory(peer_id, inventory_state)
     if not player_fns.peer_has_player(peer_id) then
         return
