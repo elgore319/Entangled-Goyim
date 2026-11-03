@@ -34,7 +34,13 @@ use std::{
     sync::{LazyLock, Mutex, OnceLock, TryLockError},
     time::Instant,
 };
-use std::{num::NonZero, sync::MutexGuard};
+use std::{
+    num::NonZero,
+    sync::{
+        MutexGuard,
+        atomic::{AtomicBool, Ordering},
+    },
+};
 mod addr_grabber;
 mod modules;
 mod net;
@@ -55,6 +61,23 @@ static NETMANAGER: LazyLock<Mutex<Option<NetManager>>> = LazyLock::new(Default::
 static KEEP_SELF_LOADED: LazyLock<Result<libloading::Library, libloading::Error>> =
     LazyLock::new(|| unsafe { libloading::Library::new("ewext.dll") });
 static MY_PEER_ID: OnceLock<PeerId> = OnceLock::new();
+/// Set once the socket to the proxy has failed (the proxy left the lobby,
+/// was closed, or the host ended the lobby). After that every module call is
+/// skipped: running entity sync against a dead connection fails part way
+/// through every frame and leaves its bookkeeping half updated.
+static PROXY_LOST: AtomicBool = AtomicBool::new(false);
+
+fn proxy_lost() -> bool {
+    PROXY_LOST.load(Ordering::Relaxed)
+}
+
+/// Passes a netmanager result through, remembering if the connection died.
+fn note_net_err<T>(res: eyre::Result<T>) -> eyre::Result<T> {
+    if res.is_err() {
+        PROXY_LOST.store(true, Ordering::Relaxed);
+    }
+    res
+}
 
 fn try_lock_netmanager() -> eyre::Result<MutexGuard<'static, Option<NetManager>>> {
     match NETMANAGER.try_lock() {
@@ -319,7 +342,7 @@ fn netmanager_connect(_lua: LuaState) -> eyre::Result<Vec<RawString>> {
 fn netmanager_recv(_lua: LuaState) -> eyre::Result<Option<RawString>> {
     let mut binding = try_lock_netmanager()?;
     let netmanager = binding.as_mut().unwrap();
-    while let Some(msg) = netmanager.try_recv()? {
+    while let Some(msg) = note_net_err(netmanager.try_recv())? {
         match msg {
             NoitaInbound::RawMessage(vec) => return Ok(Some(vec.into())),
             NoitaInbound::Ready { .. } => {
@@ -363,7 +386,7 @@ fn netmanager_send(lua: LuaState) -> eyre::Result<()> {
     let arg = lua.to_raw_string(1)?;
     let mut binding = try_lock_netmanager()?;
     let netmanager = binding.as_mut().unwrap();
-    netmanager.send(&NoitaOutbound::Raw(arg))?;
+    note_net_err(netmanager.send(&NoitaOutbound::Raw(arg)))?;
 
     Ok(())
 }
@@ -371,7 +394,11 @@ fn netmanager_send(lua: LuaState) -> eyre::Result<()> {
 fn netmanager_flush(_lua: LuaState) -> eyre::Result<()> {
     let mut binding = try_lock_netmanager()?;
     let netmanager = binding.as_mut().unwrap();
-    netmanager.flush()
+    note_net_err(netmanager.flush())
+}
+
+fn netmanager_lost(_lua: LuaState) -> eyre::Result<bool> {
+    Ok(proxy_lost())
 }
 
 /*impl LuaFnRet for InitKV {
@@ -404,6 +431,9 @@ static IN_MODULE_LOCK: Mutex<()> = Mutex::new(());
 fn with_every_module(
     f: impl Fn(&mut ModuleCtx, &mut dyn Module) -> eyre::Result<()>,
 ) -> eyre::Result<()> {
+    if proxy_lost() {
+        return Ok(());
+    }
     let _lock = IN_MODULE_LOCK.lock().unwrap();
     let mut temp = try_lock_netmanager()?;
     let net = temp.as_mut().ok_or_eyre("Netmanager not available")?;
@@ -667,6 +697,7 @@ pub unsafe extern "C" fn luaopen_ewext(lua: *mut lua_State) -> c_int {
         add_lua_fn!(netmanager_recv);
         add_lua_fn!(netmanager_send);
         add_lua_fn!(netmanager_flush);
+        add_lua_fn!(netmanager_lost);
 
         add_lua_fn!(module_on_world_init);
         add_lua_fn!(module_on_world_update);

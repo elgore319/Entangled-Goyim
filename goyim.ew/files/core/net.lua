@@ -14,6 +14,11 @@ net._rpc_inner = {
 }
 net.rpc = {}
 net.connect_failed = false
+-- Set once the connection to the proxy is gone (the host ended the lobby, the
+-- player left it, or the proxy closed). Multiplayer stops for the rest of the
+-- run instead of every system erroring against a dead socket each frame.
+net.lost = false
+net.host_left = false
 
 local rpc_inner = net._rpc_inner
 
@@ -151,7 +156,7 @@ local function handle_message(msg)
         msg_decoded ~= nil
         and net_handling[msg_decoded.kind] ~= nil
         and net_handling[msg_decoded.kind][msg_decoded.key] ~= nil
-        and (not ctx.run_ended or msg_decoded.key == "join_notify")
+        and (not ctx.run_ended or msg_decoded.key == "join_notify" or msg_decoded.key == "host_left")
         and (ctx.ready or msg_decoded.kind ~= "mod")
     then
         util.tpcall(
@@ -163,15 +168,55 @@ local function handle_message(msg)
     end
 end
 
+local function on_connection_lost(err)
+    if net.lost then
+        return
+    end
+    net.lost = true
+    print("Lost connection to proxy: " .. tostring(err))
+    -- Remote players can't move anymore, so take them out of the world.
+    for peer_id, player_data in pairs(ctx.players or {}) do
+        if peer_id ~= ctx.my_id and player_data.entity ~= nil and EntityGetIsAlive(player_data.entity) then
+            pcall(EntityKill, player_data.entity)
+        end
+    end
+    if net.host_left then
+        GamePrint("The host ended the lobby. Multiplayer has stopped.")
+    else
+        GamePrint("Lost connection to the proxy. Multiplayer has stopped.")
+    end
+end
+
+function net.check_lost()
+    if net.lost then
+        return true
+    end
+    local ok, lost = pcall(ewext.netmanager_lost)
+    if ok and lost then
+        on_connection_lost("ewext reported the socket as closed")
+    end
+    return net.lost
+end
+
 function net.update()
+    if net.check_lost() then
+        return
+    end
     while true do
-        local msg = ewext.netmanager_recv()
+        local ok, msg = pcall(ewext.netmanager_recv)
+        if not ok then
+            on_connection_lost(msg)
+            return
+        end
         if msg == nil then
             break
         end
         handle_message(msg)
     end
-    ewext.netmanager_flush()
+    local ok, err = pcall(ewext.netmanager_flush)
+    if not ok then
+        on_connection_lost(err)
+    end
 end
 
 function net.init()
@@ -192,16 +237,26 @@ local DEST_FLAGS = 0
 
 local MOD_RELIABLE = 4 -- 0b101
 
+local function raw_send(data)
+    if net.lost then
+        return
+    end
+    local ok, err = pcall(ewext.netmanager_send, data)
+    if not ok then
+        on_connection_lost(err)
+    end
+end
+
 function net.send_internal(msg, dest, reliable)
     if reliable then
         dest = dest + MOD_RELIABLE
     end
-    ewext.netmanager_send(string.char(dest) .. msg)
+    raw_send(string.char(dest) .. msg)
 end
 
 function net.send_flags(flags)
     local dest = DEST_FLAGS + MOD_RELIABLE
-    ewext.netmanager_send(string.char(dest) .. flags)
+    raw_send(string.char(dest) .. flags)
 end
 
 function net.send(key, value, reliable)
@@ -229,7 +284,7 @@ function net.proxy_send(key, value)
 end
 
 function net.proxy_bin_send(key, value)
-    ewext.netmanager_send(string.char(DEST_PROXY_BIN, key) .. value)
+    raw_send(string.char(DEST_PROXY_BIN, key) .. value)
 end
 
 function net.proxy_notify_game_over()
