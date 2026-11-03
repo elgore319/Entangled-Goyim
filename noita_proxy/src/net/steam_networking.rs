@@ -18,7 +18,7 @@ use steamworks::{
     },
 };
 use tangled::{PeerState, Reliability};
-use tracing::{error, info, warn};
+use tracing::{info, warn};
 
 use crate::{
     lang::{tr, tr_a},
@@ -122,8 +122,6 @@ pub struct ConnectionStatusReport {
     pub per_peer_statuses: Vec<PerPeerStatusEntry>,
 }
 
-/// How long a peer's backlog may stay non-empty before we give up on the peer.
-const SEND_BACKLOG_TIMEOUT: Duration = Duration::from_secs(30);
 const SEND_BACKLOG_REPORT_INTERVAL: Duration = Duration::from_secs(5);
 
 /// Reliable messages Steam refused with `LimitExceeded`, held in order until it has room.
@@ -141,7 +139,6 @@ struct SendBacklog {
 enum BacklogState {
     Drained,
     Waiting,
-    Stuck,
 }
 
 impl SendBacklog {
@@ -166,13 +163,8 @@ impl SendBacklog {
         self.peak_bytes = self.peak_bytes.max(self.bytes);
     }
 
-    /// Sends oldest first, stopping at the first refusal. Only an empty backlog
-    /// resets the timeout.
-    fn drain(
-        &mut self,
-        now: Instant,
-        mut send: impl FnMut(&[u8]) -> Result<(), SteamError>,
-    ) -> BacklogState {
+    /// Sends oldest first, stopping at the first refusal.
+    fn drain(&mut self, mut send: impl FnMut(&[u8]) -> Result<(), SteamError>) -> BacklogState {
         while let Some(msg) = self.messages.front() {
             let len = msg.len();
             if let Err(err) = send(msg) {
@@ -184,8 +176,6 @@ impl SendBacklog {
         }
         if self.messages.is_empty() {
             BacklogState::Drained
-        } else if now.duration_since(self.since) >= SEND_BACKLOG_TIMEOUT {
-            BacklogState::Stuck
         } else {
             BacklogState::Waiting
         }
@@ -419,18 +409,19 @@ impl Connections {
         }
     }
 
-    /// Retries every backlog. Returns the peers whose backlog timed out; those
-    /// backlogs are dropped.
-    fn drain_backlogs(&self) -> Vec<SteamId> {
+    /// Retries every backlog. A backlog is kept, and retried, for as long as the
+    /// peer is connected, however long that takes: we never kick or leave over a
+    /// slow connection. If the connection really dies, Steam reports it closed and
+    /// `disconnect` drops the backlog.
+    fn drain_backlogs(&self) {
         let now = Instant::now();
-        let mut stuck = Vec::new();
         self.backlogs.lock().unwrap().retain(|&peer, backlog| {
             let entry = self.peers.get(&peer);
             // Not `send_now`: it reports success when the peer isn't connected yet.
             let connection = entry
                 .as_ref()
                 .and_then(|state| state.value().connection());
-            let state = backlog.drain(now, |msg| match connection {
+            let state = backlog.drain(|msg| match connection {
                 Some(connection) => connection
                     .send_message(msg, SendFlags::RELIABLE)
                     .map(|_| ()),
@@ -458,21 +449,8 @@ impl Connections {
                     }
                     true
                 }
-                BacklogState::Stuck => {
-                    error!(
-                        "Giving up on reliable messages to peer {:?} after {:.1}s: dropping {} messages ({} bytes), last refusal {:?}",
-                        peer,
-                        waited,
-                        backlog.messages.len(),
-                        backlog.bytes,
-                        backlog.last_error
-                    );
-                    stuck.push(peer);
-                    false
-                }
             }
         });
-        stuck
     }
 
     fn send_now(&self, peer: SteamId, send_flags: SendFlags, msg: &[u8]) -> Result<(), SteamError> {
@@ -655,10 +633,8 @@ impl SteamPeer {
             info!("Switched to `all connected` state");
             self.inner.lock().unwrap().state = ExtraPeerState::Tangled(PeerState::Connected);
         }
+        self.connections.drain_backlogs();
         let mut returned_events = Vec::new();
-        for peer in self.connections.drain_backlogs() {
-            returned_events.push(OmniNetworkEvent::SendBacklogStuck(peer.into()));
-        }
         for event in self.events.try_iter() {
             match event {
                 SteamEvent::LobbyCreatedOrJoined(id) => {
